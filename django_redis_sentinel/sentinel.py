@@ -52,15 +52,15 @@ class SentinelClient(DefaultClient):
 
         return self._client_read
 
-    def connect(self, index=0, write=True):
+    def connect(self, write=True, SentinelClass=Sentinel):
         """
         Creates a redis connection with connection pool.
         """
-        self.log.debug("connect called: index=%s, write=%s" % (index, write,))
+        self.log.debug("connect called: write=%s" % (write,))
         master_name, sentinel_hosts, db = self.parse_connection_string(self._connection_string)
 
         sentinel_timeout = self._options.get('SENTINEL_TIMEOUT', 1)
-        sentinel = Sentinel(sentinel_hosts, socket_timeout=sentinel_timeout)
+        sentinel = SentinelClass(sentinel_hosts, socket_timeout=sentinel_timeout)
 
         if write:
             host, port = sentinel.discover_master(master_name)
