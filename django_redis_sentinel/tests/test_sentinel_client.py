@@ -110,3 +110,45 @@ def test_connect_read(client, monkeypatch, MockSentinel):
         "redis://write_host:6379/1"
     ]
     assert client.connect(False, MockSentinel) in expected_results
+
+
+def test_close_read(client, monkeypatch):
+    stub_client = stub(connection_pool=stub(_available_connections=[
+        stub(disconnect=lambda: True),
+        stub(disconnect=lambda: True),
+    ]))
+    monkeypatch.setattr(client, "_client_read", stub_client)
+    monkeypatch.setattr(client, "_client_write", None)
+
+    client.close()
+
+    assert client._client_write is None
+    assert client._client_read is None
+
+
+def test_close_write(client, monkeypatch):
+    stub_client = stub(connection_pool=stub(_available_connections=[
+        stub(disconnect=lambda: True),
+        stub(disconnect=lambda: True),
+    ]))
+    monkeypatch.setattr(client, "_client_read", None)
+    monkeypatch.setattr(client, "_client_write", stub_client)
+
+    client.close()
+
+    assert client._client_write is None
+    assert client._client_read is None
+
+
+def test_close_both(client, monkeypatch):
+    stub_client = stub(connection_pool=stub(_available_connections=[
+        stub(disconnect=lambda: True),
+        stub(disconnect=lambda: True),
+    ]))
+    monkeypatch.setattr(client, "_client_read", stub_client)
+    monkeypatch.setattr(client, "_client_write", stub_client)
+
+    client.close()
+
+    assert client._client_write is None
+    assert client._client_read is None
