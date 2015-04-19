@@ -7,7 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from redis.sentinel import Sentinel
 
-from django_redis.clients.default import DefaultClient
+from django_redis.client import DefaultClient
 
 
 class SentinelClient(DefaultClient):
@@ -34,7 +34,7 @@ class SentinelClient(DefaultClient):
             servers = [host_port.split(':') for host_port in connection_params[1].split(',')]
             sentinel_hosts = [(host, int(port)) for host, port in servers]
             db = connection_params[2]
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, IndexError):
             raise ImproperlyConfigured("Incorrect format '%s'" % (constring))
 
         return master_name, sentinel_hosts, db
