@@ -16,7 +16,6 @@ setup(
     description=description.strip(),
     install_requires=[
         "django-redis==3.8.3",
-        "Django==1.8",
     ],
     zip_safe=False,
     include_package_data=True,
