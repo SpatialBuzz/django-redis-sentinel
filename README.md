@@ -1,3 +1,5 @@
+[![Travis Status](https://travis-ci.org/KabbageInc/django-redis-sentinel.svg?style=flat)](https://travis-ci.org/KabbageInc/django-redis-sentinel)
+
 # django-redis-sentinel
 Plugin for django-redis that supports Redis Sentinel
 
