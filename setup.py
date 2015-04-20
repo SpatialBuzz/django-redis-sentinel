@@ -12,7 +12,6 @@ setup(
     version="1.0rc1",
     packages=[
         "django_redis_sentinel",
-        "django_redis_sentinel.tests",
     ],
     description=description.strip(),
     install_requires=[
