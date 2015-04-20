@@ -82,13 +82,13 @@ def test_connection_string_sad(Client, ImproperlyConfigured, constring):
 
 
 def test_get_client_write(client, monkeypatch):
-    monkeypatch.setattr(client, 'connect', lambda index, write: write)
+    monkeypatch.setattr(client, 'connect', lambda write: write)
     actual = client.get_client(write=True)
     assert actual is True
 
 
 def test_get_client_read(client, monkeypatch):
-    monkeypatch.setattr(client, 'connect', lambda index, write: write)
+    monkeypatch.setattr(client, 'connect', lambda write: write)
     actual = client.get_client(write=False)
     assert actual is False
 
