@@ -22,6 +22,7 @@ matrix:
 install:
   - pip install $DJANGO --use-mirrors
   - pip install -r requirements.txt --use-mirrors
+  - python setup.py -q install
 
 script:
   - py.test --pep8
