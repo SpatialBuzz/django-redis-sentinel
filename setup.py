@@ -9,7 +9,7 @@ setup(
     url="https://github.com/KabbageInc/django-redis-sentinel",
     author="Chris Heisel",
     author_email="cheisel@kabbage.com",
-    version="1.0rc2",
+    version="1.0rc3",
     packages=[
         "django_redis_sentinel",
     ],

@@ -43,12 +43,12 @@ class SentinelClient(DefaultClient):
         self.log.debug("get_client called: write=%s" % (write,))
         if write:
             if self._client_write is None:
-                self._client_write = self.connect(0, write)
+                self._client_write = self.connect(write)
 
             return self._client_write
 
         if self._client_read is None:
-            self._client_read = self.connect(0, write)
+            self._client_read = self.connect(write)
 
         return self._client_read
 
