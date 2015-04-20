@@ -1,1 +1,1 @@
-from sentinel import SentinelClient
+from .sentinel import SentinelClient
