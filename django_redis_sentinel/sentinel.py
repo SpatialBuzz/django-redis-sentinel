@@ -52,10 +52,12 @@ class SentinelClient(DefaultClient):
 
         return self._client_read
 
-    def connect(self, write=True, SentinelClass=Sentinel):
+    def connect(self, write=True, SentinelClass=None):
         """
         Creates a redis connection with connection pool.
         """
+        if SentinelClass is None:
+            SentinelClass = Sentinel
         self.log.debug("connect called: write=%s" % (write,))
         master_name, sentinel_hosts, db = self.parse_connection_string(self._connection_string)
 
