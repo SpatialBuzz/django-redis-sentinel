@@ -22,6 +22,8 @@ matrix:
 install:
   - pip install $DJANGO --use-mirrors
   - pip install -r requirements.txt --use-mirrors
+  - pwd
+  - ls -al $TRAVIS_BUILD_DIR
   - python setup.py -q install
 
 script:
