@@ -62,10 +62,10 @@ class SentinelClient(DefaultClient):
         master_name, sentinel_hosts, db = self.parse_connection_string(self._connection_string)
 
         sentinel_timeout = self._options.get('SENTINEL_TIMEOUT', 1)
-        sentinel_password = self._options.get('PASSWORD', None)
+        password = self._options.get('PASSWORD', None)
         sentinel = SentinelClass(sentinel_hosts,
                                  socket_timeout=sentinel_timeout,
-                                 password=sentinel_password)
+                                 password=password)
 
         if write:
             host, port = sentinel.discover_master(master_name)
@@ -74,7 +74,10 @@ class SentinelClient(DefaultClient):
                 [sentinel.discover_master(master_name)] + sentinel.discover_slaves(master_name)
             )
 
-        connection_url = "redis://%s:%s/%s" % (host, port, db)
+        if password:
+            connection_url = "redis://:%s@%s:%s/%s" % (password, host, port, db)
+        else:
+            connection_url = "redis://%s:%s/%s" % (host, port, db)
         self.log.debug("Connecting to: %s" % connection_url)
         return self.connection_factory.connect(connection_url)
 
