@@ -27,7 +27,7 @@ def ImproperlyConfigured():
 @pytest.fixture
 def MockSentinel():
     class MockSentinel(object):
-        def __init__(self, hosts, socket_timeout):
+        def __init__(self, hosts, socket_timeout, password):
             pass
 
         def discover_master(self, master_name):
