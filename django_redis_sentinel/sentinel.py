@@ -3,14 +3,20 @@
 import logging
 import random
 
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from redis.sentinel import Sentinel
 
 from django_redis.client import DefaultClient
 
+DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
 
 class SentinelClient(DefaultClient):
+    """
+    Sentinel client object extending django-redis DefaultClient
+    """
+
     def __init__(self, server, params, backend):
         """
         Slightly different logic than connection to multiple Redis servers.
@@ -20,7 +26,7 @@ class SentinelClient(DefaultClient):
         self._client_write = None
         self._client_read = None
         self._connection_string = server
-        self.log = logging.getLogger("django_redis.client.SentinelClient")
+        self.log = logging.getLogger((DJANGO_REDIS_LOGGER or __name__))
 
     def parse_connection_string(self, constring):
         """
@@ -40,7 +46,14 @@ class SentinelClient(DefaultClient):
         return master_name, sentinel_hosts, db
 
     def get_client(self, write=True):
-        self.log.debug("get_client called: write=%s" % (write,))
+        """
+        Method used to obtain a raw redis client.
+
+        This function is used by almost all cache backend
+        operations to obtain a native redis client/connection
+        instance.
+        """
+        self.log.debug("get_client called: write=%s", write)
         if write:
             if self._client_write is None:
                 self._client_write = self.connect(write)
@@ -58,7 +71,7 @@ class SentinelClient(DefaultClient):
         """
         if SentinelClass is None:
             SentinelClass = Sentinel
-        self.log.debug("connect called: write=%s" % (write,))
+        self.log.debug("connect called: write=%s", write)
         master_name, sentinel_hosts, db = self.parse_connection_string(self._connection_string)
 
         sentinel_timeout = self._options.get('SENTINEL_TIMEOUT', 1)
@@ -70,15 +83,17 @@ class SentinelClient(DefaultClient):
         if write:
             host, port = sentinel.discover_master(master_name)
         else:
-            host, port = random.choice(
-                [sentinel.discover_master(master_name)] + sentinel.discover_slaves(master_name)
-            )
+            try:
+                host, port = random.choice(sentinel.discover_slaves(master_name))
+            except IndexError:
+                self.log.debug("no slaves are available. using master for read.")
+                host, port = sentinel.discover_master(master_name)
 
         if password:
             connection_url = "redis://:%s@%s:%s/%s" % (password, host, port, db)
         else:
             connection_url = "redis://%s:%s/%s" % (host, port, db)
-        self.log.debug("Connecting to: %s" % connection_url)
+        self.log.debug("Connecting to: %s", connection_url)
         return self.connection_factory.connect(connection_url)
 
     def close(self, **kwargs):
