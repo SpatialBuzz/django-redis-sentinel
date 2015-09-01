@@ -12,6 +12,7 @@ pip install django-redis-sentinel
 # Usage
 
 Location format: master_name/sentinel_server:port,sentinel_server:port/db_id
+
 In your settings, do something like this:
 
 ```
