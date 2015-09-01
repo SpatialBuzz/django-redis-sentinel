@@ -12,6 +12,7 @@ from django_redis.client import DefaultClient
 
 DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
 
+
 class SentinelClient(DefaultClient):
     """
     Sentinel client object extending django-redis DefaultClient
