@@ -5,10 +5,10 @@ Plugin for django-redis that supports Redis Sentinel
 """
 
 setup(
-    name="django-redis-sentinel",
-    url="https://github.com/KabbageInc/django-redis-sentinel",
-    author="Chris Heisel",
-    author_email="cheisel@kabbage.com",
+    name="sb-django-redis-sentinel",
+    url="https://github.com/SpatialBuzz/django-redis-sentinel",
+    author="Ryan Shaw",
+    author_email="ryan.shaw@spatialbuzz.com",
     version="1.0",
     packages=[
         "django_redis_sentinel",

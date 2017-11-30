@@ -30,6 +30,6 @@ script:
 notifications:
   email:
     recipients:
-      - cheisel@kabbage.com
+      - ryan.shaw@spatialbuzz.com
     on_success: change
     on_failure: change
