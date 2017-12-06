@@ -16,6 +16,8 @@ script: py.test -v --pep8
 jobs:
   include:
     - stage: deploy
+      python: '2.7'
+      env: DJANGO="django==1.6.3"
       provider: pypi
       user:
         secure: DpqC+SJHo5horw1NMnPI6MAPFAyfqDHYUQnrvmzGkktjrT1un0NjIt2nMfvTs0NoHlRucZlMfBLghO4w1dKy79rpcOjVQTD1zuF0I4GUNq4YEy2jL3i8irX8okk+zReDv/hoyxxLZyuox6QxKE051JEd2FgaTcIDuo+RGvus62EPLlqo7FX9c7LiJ0kFlq8PRthyh8rF0e92e8LgqwSWl41Pe8warv3x1NUZnKFz4ECybvk3Os+SUTnc2TfFHK6bYF9G0P0AxacaJxm/KYnfeXLw2lwE4lsDGHY3/5lRY8Q425Gzt1H7xYgyrZqpUOGGq5v35pPl2H6LMIpvxx+KoSUD8Pw2UEp7yUP687KbGUdeobauGbQZE3zeOaixJqoRKCM0kuTZKaRs9QYqAwUJYmYt7NCfBxumzw4Lw31YBgwbtoEvLkSIbk5eYQw0vN5U1Dtxfw/bcqYMVEX9YytOVWPBnvofCPeSiQMVo2nYclap0xvcaOxylNZng3rTa5C/GWcdfs3AXztoWFLMwQYHEwo76SiuQpGqwQv/niShHaR0zpJuRW7Dw4Xp2TDMy1/fKA/ySR4wbhqFnP8sB0E4Iz39kMgeW9/bKv9Suane8toqBSe4fLQRZaBtGduGd0MI8N8IfBdMdYkaDLtcrCu0Pm5OW8mpsfBBeYSM9oB6Ep4=
