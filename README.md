@@ -1,4 +1,4 @@
-[![Travis Status](https://travis-ci.org/KabbageInc/django-redis-sentinel.svg?style=flat)](https://travis-ci.org/KabbageInc/django-redis-sentinel)
+[![Travis Status](https://api.travis-ci.org/SpatialBuzz/django-redis-sentinel.svg?branch=master)](https://travis-ci.org/SpatialBuzz/django-redis-sentinel)
 
 # django-redis-sentinel
 Plugin for django-redis that supports Redis Sentinel
@@ -27,3 +27,10 @@ In your settings, do something like this:
         }
     }
 ```
+
+## Settings
+These are top-level settings in settings.py
+
+`DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION` - Close connection after each request, off will allow persistant connections (default `False`)
+`DJANGO_REDIS_READ_FROM_MASTER` - Allow reads on master (default `True`)
+`DJANGO_REDIS_ROLE_CHECK_TIME` - With persistant connections the master could change to a slave, this value specifes the min time period to check if the host is still master, if not it will query the sentinels again.

@@ -1,6 +1,6 @@
 from pretend import stub
 import pytest
-
+from mock import patch
 
 @pytest.fixture
 def Client():
@@ -65,8 +65,8 @@ def test_parse_connection_string(Client):
 
 
 _bad_connection_strings = [
-        "redis_master/foo:1000",
-        "redis_master/foo:abcd",
+    "redis_master/foo:1000",
+    "redis_master/foo:abcd",
 ]
 
 
@@ -112,7 +112,9 @@ def test_connect_read(client, monkeypatch, MockSentinel):
     assert client.connect(False, MockSentinel) in expected_results
 
 
-def test_close_read(client, monkeypatch):
+@patch('django_redis_sentinel.sentinel.DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION')
+def test_close_read(var, client, monkeypatch):
+    var = True
     stub_client = stub(connection_pool=stub(_available_connections=[
         stub(disconnect=lambda: True),
         stub(disconnect=lambda: True),
@@ -125,8 +127,9 @@ def test_close_read(client, monkeypatch):
     assert client._client_write is None
     assert client._client_read is None
 
-
-def test_close_write(client, monkeypatch):
+@patch('django_redis_sentinel.sentinel.DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION')
+def test_close_write(var, client, monkeypatch):
+    var = True
     stub_client = stub(connection_pool=stub(_available_connections=[
         stub(disconnect=lambda: True),
         stub(disconnect=lambda: True),
@@ -139,8 +142,9 @@ def test_close_write(client, monkeypatch):
     assert client._client_write is None
     assert client._client_read is None
 
-
-def test_close_both(client, monkeypatch):
+@patch('django_redis_sentinel.sentinel.DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION')
+def test_close_both(var, client, monkeypatch):
+    var = True
     stub_client = stub(connection_pool=stub(_available_connections=[
         stub(disconnect=lambda: True),
         stub(disconnect=lambda: True),
@@ -152,3 +156,42 @@ def test_close_both(client, monkeypatch):
 
     assert client._client_write is None
     assert client._client_read is None
+
+def test_close_read_no_close(client, monkeypatch):
+    stub_client = stub(connection_pool=stub(_available_connections=[
+        stub(disconnect=lambda: True),
+        stub(disconnect=lambda: True),
+    ]))
+    monkeypatch.setattr(client, "_client_read", stub_client)
+    monkeypatch.setattr(client, "_client_write", None)
+
+    client.close()
+
+    assert client._client_write is None
+    assert client._client_read is not None
+
+def test_close_write_no_close(client, monkeypatch):
+    stub_client = stub(connection_pool=stub(_available_connections=[
+        stub(disconnect=lambda: True),
+        stub(disconnect=lambda: True),
+    ]))
+    monkeypatch.setattr(client, "_client_read", None)
+    monkeypatch.setattr(client, "_client_write", stub_client)
+
+    client.close()
+
+    assert client._client_write is not None
+    assert client._client_read is None
+
+def test_close_both_no_close(client, monkeypatch):
+    stub_client = stub(connection_pool=stub(_available_connections=[
+        stub(disconnect=lambda: True),
+        stub(disconnect=lambda: True),
+    ]))
+    monkeypatch.setattr(client, "_client_read", stub_client)
+    monkeypatch.setattr(client, "_client_write", stub_client)
+
+    client.close()
+
+    assert client._client_write is not None
+    assert client._client_read is not None

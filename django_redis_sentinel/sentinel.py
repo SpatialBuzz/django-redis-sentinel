@@ -2,6 +2,7 @@
 
 import logging
 import random
+import time
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -11,6 +12,10 @@ from redis.sentinel import Sentinel
 from django_redis.client import DefaultClient
 
 DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
+DJANGO_REDIS_ROLE_CHECK_TIME = getattr(settings, "DJANGO_REDIS_ROLE_CHECK_TIME", 60 * 1000)
+DJANGO_REDIS_READ_FROM_MASTER = getattr(settings, "DJANGO_REDIS_READ_FROM_MASTER", True)
+DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION = \
+    getattr(settings, "DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION", False)
 
 
 class SentinelClient(DefaultClient):
@@ -26,6 +31,8 @@ class SentinelClient(DefaultClient):
         super(SentinelClient, self).__init__(server, params, backend)
         self._client_write = None
         self._client_read = None
+        self._client_write_last_check = 0
+        self._client_read_last_check = 0
         self._connection_string = server
         self.log = logging.getLogger((DJANGO_REDIS_LOGGER or __name__))
 
@@ -58,11 +65,26 @@ class SentinelClient(DefaultClient):
         if write:
             if self._client_write is None:
                 self._client_write = self.connect(write)
+            else:
+                if time.time() - self._client_write_last_check > DJANGO_REDIS_ROLE_CHECK_TIME:
+                    if self._client_write.execute_command('role')[0] != 'master':
+                        self._close_write()
+                        self._client_write = self.connect(write)
+
+            self._client_write_last_check = time.time()
 
             return self._client_write
 
         if self._client_read is None:
             self._client_read = self.connect(write)
+        else:
+            if not DJANGO_REDIS_READ_FROM_MASTER and \
+              time.time() - self._client_read_last_check > DJANGO_REDIS_ROLE_CHECK_TIME:
+                if self._client_read.execute_command('role')[0] != 'slave':
+                    self._close_write()
+                    self._client_read = self.connect(write)
+
+            self._client_read_last_check = time.time()
 
         return self._client_read
 
@@ -85,7 +107,10 @@ class SentinelClient(DefaultClient):
             host, port = sentinel.discover_master(master_name)
         else:
             try:
-                host, port = random.choice(sentinel.discover_slaves(master_name))
+                read_hosts = list(sentinel.discover_slaves(master_name))
+                if DJANGO_REDIS_READ_FROM_MASTER:
+                    read_hosts.append(sentinel.discover_master(master_name))
+                host, port = random.choice(read_hosts)
             except IndexError:
                 self.log.debug("no slaves are available. using master for read.")
                 host, port = sentinel.discover_master(master_name)
@@ -97,22 +122,28 @@ class SentinelClient(DefaultClient):
         self.log.debug("Connecting to: %s", connection_url)
         return self.connection_factory.connect(connection_url)
 
-    def close(self, **kwargs):
-        """
-        Closing old connections, as master may change in time of inactivity.
-        """
-        self.log.debug("close called")
+    def _close_write(self):
+        if self._client_write:
+            for c in self._client_write.connection_pool._available_connections:
+                    c.disconnect()
+            self.log.debug("client_write closed")
+
+    def _close_read(self):
         if self._client_read:
             for c in self._client_read.connection_pool._available_connections:
                 c.disconnect()
             self.log.debug("client_read closed")
 
-        if self._client_write:
-            for c in self._client_write.connection_pool._available_connections:
-                c.disconnect()
-            self.log.debug("client_write closed")
+    def close(self, **kwargs):
+        """
+        Closing old connections, as master may change in time of inactivity.
+        """
+        if DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION:
+            self.log.debug("close called")
+            self._close_read()
+            self._close_write()
 
-        del(self._client_write)
-        del(self._client_read)
-        self._client_write = None
-        self._client_read = None
+            del self._client_write
+            del self._client_read
+            self._client_write = None
+            self._client_read = None
