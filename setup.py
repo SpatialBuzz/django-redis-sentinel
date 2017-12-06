@@ -9,7 +9,7 @@ setup(
     url="https://github.com/SpatialBuzz/django-redis-sentinel",
     author="Ryan Shaw",
     author_email="ryan.shaw@spatialbuzz.com",
-    version="1.0.1",
+    version="1.0.2",
     packages=[
         "django_redis_sentinel",
     ],
