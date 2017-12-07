@@ -12,10 +12,7 @@ from redis.sentinel import Sentinel
 from django_redis.client import DefaultClient
 
 DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
-DJANGO_REDIS_ROLE_CHECK_TIME = getattr(settings, "DJANGO_REDIS_ROLE_CHECK_TIME", 60 * 1000)
-DJANGO_REDIS_READ_FROM_MASTER = getattr(settings, "DJANGO_REDIS_READ_FROM_MASTER", True)
-DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION = \
-    getattr(settings, "DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION", False)
+DJANGO_REDIS_CLOSE_CONNECTION = getattr(settings, "DJANGO_REDIS_CLOSE_CONNECTION", False)
 
 
 class SentinelClient(DefaultClient):
@@ -64,27 +61,12 @@ class SentinelClient(DefaultClient):
         self.log.debug("get_client called: write=%s", write)
         if write:
             if self._client_write is None:
-                self._client_write = self.connect(write)
-            else:
-                if time.time() - self._client_write_last_check > DJANGO_REDIS_ROLE_CHECK_TIME:
-                    if self._client_write.execute_command('role')[0] != 'master':
-                        self._close_write()
-                        self._client_write = self.connect(write)
-
-            self._client_write_last_check = time.time()
+                self._client_write = self.connect(write=True)
 
             return self._client_write
 
         if self._client_read is None:
-            self._client_read = self.connect(write)
-        else:
-            if not DJANGO_REDIS_READ_FROM_MASTER and \
-              time.time() - self._client_read_last_check > DJANGO_REDIS_ROLE_CHECK_TIME:
-                if self._client_read.execute_command('role')[0] != 'slave':
-                    self._close_write()
-                    self._client_read = self.connect(write)
-
-            self._client_read_last_check = time.time()
+            self._client_read = self.connect(write=False)
 
         return self._client_read
 
@@ -104,23 +86,18 @@ class SentinelClient(DefaultClient):
                                  password=password)
 
         if write:
-            host, port = sentinel.discover_master(master_name)
+            connect = sentinel.master_for(
+                master_name,
+                socket_timeout=sentinel_timeout,
+                db=db,
+            )
         else:
-            try:
-                read_hosts = list(sentinel.discover_slaves(master_name))
-                if DJANGO_REDIS_READ_FROM_MASTER:
-                    read_hosts.append(sentinel.discover_master(master_name))
-                host, port = random.choice(read_hosts)
-            except IndexError:
-                self.log.debug("no slaves are available. using master for read.")
-                host, port = sentinel.discover_master(master_name)
-
-        if password:
-            connection_url = "redis://:%s@%s:%s/%s" % (password, host, port, db)
-        else:
-            connection_url = "redis://%s:%s/%s" % (host, port, db)
-        self.log.debug("Connecting to: %s", connection_url)
-        return self.connection_factory.connect(connection_url)
+            connect = sentinel.slave_for(
+                master_name,
+                socket_timeout=sentinel_timeout,
+                db=db,
+            )
+        return connect
 
     def _close_write(self):
         if self._client_write:
@@ -138,8 +115,8 @@ class SentinelClient(DefaultClient):
         """
         Closing old connections, as master may change in time of inactivity.
         """
-        if DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION:
-            self.log.debug("close called")
+        self.log.debug("close called")
+        if DJANGO_REDIS_CLOSE_CONNECTION:
             self._close_read()
             self._close_write()
 

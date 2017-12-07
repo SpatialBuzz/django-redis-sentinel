@@ -30,6 +30,12 @@ def MockSentinel():
         def __init__(self, hosts, socket_timeout, password):
             pass
 
+        def master_for(self, master_name, socket_timeout, db):
+            return ("write_host", 6379)
+
+        def slave_for(self, master_name, socket_timeout, db):
+            return ("slave_host", 6379)
+
         def discover_master(self, master_name):
             return ("write_host", 6379)
 
@@ -97,7 +103,7 @@ def test_connect_write(client, monkeypatch, MockSentinel):
     monkeypatch.setattr(client, 'connection_factory', stub(connect=lambda url: url))
     monkeypatch.setattr(client, 'parse_connection_string', lambda x: ("foo", 0, "1"))
 
-    assert "redis://write_host:6379/1" == client.connect(True, MockSentinel)
+    assert ('write_host', 6379) == client.connect(True, MockSentinel)
 
 
 def test_connect_read(client, monkeypatch, MockSentinel):
@@ -105,14 +111,12 @@ def test_connect_read(client, monkeypatch, MockSentinel):
     monkeypatch.setattr(client, 'parse_connection_string', lambda x: ("foo", 0, "1"))
 
     expected_results = [
-        "redis://slave_host:6379/1",
-        "redis://slave_host2:6379/1",
-        "redis://write_host:6379/1"
+        ('slave_host', 6379)
     ]
     assert client.connect(False, MockSentinel) in expected_results
 
 
-@patch('django_redis_sentinel.sentinel.DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION')
+@patch('django_redis_sentinel.sentinel.DJANGO_REDIS_CLOSE_CONNECTION')
 def test_close_read(var, client, monkeypatch):
     var = True
     stub_client = stub(connection_pool=stub(_available_connections=[
@@ -127,7 +131,7 @@ def test_close_read(var, client, monkeypatch):
     assert client._client_write is None
     assert client._client_read is None
 
-@patch('django_redis_sentinel.sentinel.DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION')
+@patch('django_redis_sentinel.sentinel.DJANGO_REDIS_CLOSE_CONNECTION')
 def test_close_write(var, client, monkeypatch):
     var = True
     stub_client = stub(connection_pool=stub(_available_connections=[
@@ -142,7 +146,7 @@ def test_close_write(var, client, monkeypatch):
     assert client._client_write is None
     assert client._client_read is None
 
-@patch('django_redis_sentinel.sentinel.DJANGO_REDIS_SENTINEL_CLOSE_CONNECTION')
+@patch('django_redis_sentinel.sentinel.DJANGO_REDIS_CLOSE_CONNECTION')
 def test_close_both(var, client, monkeypatch):
     var = True
     stub_client = stub(connection_pool=stub(_available_connections=[
