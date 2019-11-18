@@ -50,7 +50,7 @@ class SentinelClient(DefaultClient):
 
         return master_name, sentinel_hosts, db
 
-    def get_client(self, write=True):
+    def get_client(self, write=True, tried=(), show_index=False):
         """
         Method used to obtain a raw redis client.
 
@@ -63,12 +63,18 @@ class SentinelClient(DefaultClient):
             if self._client_write is None:
                 self._client_write = self.connect(write=True)
 
-            return self._client_write
+            if show_index:
+                return self._client_write, 0
+            else:
+                return self._client_write
 
         if self._client_read is None:
             self._client_read = self.connect(write=False)
 
-        return self._client_read
+        if show_index:
+            return self._client_read, 0
+        else:
+            return self._client_read
 
     def connect(self, write=True, SentinelClass=None):
         """
