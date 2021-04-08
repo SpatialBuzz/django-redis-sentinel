@@ -1,16 +1,17 @@
-django-redis==3.8.3
+django-redis==4.10.0
+Django<3
 redis==2.10.3
 
-py==1.4.26
-pytest==2.7.0
-pytest-django==2.8.0
-pytest-cache==1.0
-pytest-pep8==1.0.6
-execnet==1.3.0
-pep8==1.6.2
-pretend==1.0.8
+py
+pytest
+pytest-django
+pytest-cache
+pytest-pep8
+execnet
+pep8
+pretend
 
-cov-core==1.15.0
-coverage==3.7.1
-pytest-cov==1.8.1
-mock==2.0.0
+cov-core
+coverage
+pytest-cov
+mock
