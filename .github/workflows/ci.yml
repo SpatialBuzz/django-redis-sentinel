@@ -18,8 +18,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        include:
+          - {python-version: '2.7', django-version: '1.11', redis-version: '2.10.3'}
+          - {python-version: '2.7', django-version: '1.11', redis-version: '3.5.3'}
         python-version:
-          - '2.7'
           - '3.6'
           - '3.7'
           - '3.8'
