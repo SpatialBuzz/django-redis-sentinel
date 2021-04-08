@@ -87,11 +87,12 @@ class SentinelClient(DefaultClient):
 
         sentinel_timeout = self._options.get('SENTINEL_TIMEOUT', 1)
         password = self._options.get('PASSWORD', None)
+        always_master = self._options.get('ALWAYS_MASTER', False)
         sentinel = SentinelClass(sentinel_hosts,
                                  socket_timeout=sentinel_timeout,
                                  password=password)
 
-        if write:
+        if write or always_master:
             connect = sentinel.master_for(
                 master_name,
                 socket_timeout=sentinel_timeout,

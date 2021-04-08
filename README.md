@@ -1,4 +1,4 @@
-[![Travis Status](https://api.travis-ci.org/SpatialBuzz/django-redis-sentinel.svg?branch=master)](https://travis-ci.org/SpatialBuzz/django-redis-sentinel)
+[![Build Status](https://github.com/SpatialBuzz/django-redis-sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/SpatialBuzz/django-redis-sentinel/actions/workflows/ci.yml/badge.svg)
 
 # django-redis-sentinel
 Plugin for django-redis that supports Redis Sentinel
@@ -22,6 +22,7 @@ In your settings, do something like this:
             "LOCATION": "redis_master/sentinel-host1:2639,sentinel-host2:2639/0"
             "OPTIONS": {
                 "PASSWORD": 's3cret_passw0rd!',
+                "ALWAYS_MASTER": True,
                 "CLIENT_CLASS": "django_redis_sentinel.SentinelClient",
             }
         }
