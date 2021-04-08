@@ -1,4 +1,4 @@
-[![Travis Status](https://api.travis-ci.org/SpatialBuzz/django-redis-sentinel.svg?branch=master)](https://travis-ci.org/SpatialBuzz/django-redis-sentinel)
+[![Build Status](https://github.com/SpatialBuzz/django-redis-sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/SpatialBuzz/django-redis-sentinel/actions/workflows/ci.yml/badge.svg)
 
 # django-redis-sentinel
 Plugin for django-redis that supports Redis Sentinel
