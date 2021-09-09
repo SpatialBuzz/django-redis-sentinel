@@ -1,6 +1,6 @@
-django-redis==4.10.0
+django-redis
 Django<3
-redis==2.10.3
+redis
 
 py
 pytest
