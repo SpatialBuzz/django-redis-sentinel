@@ -1,5 +1,5 @@
 django-redis
-Django<3
+Django
 redis
 
 py
